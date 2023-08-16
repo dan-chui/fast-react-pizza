@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
 import { createOrder } from "../../services/apiRestaurant";
 import Button from "../../ui/Button";
+import EmptyCart from "../cart/EmptyCart";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
-import EmptyCart from "../cart/EmptyCart";
 import store from "../../store";
 import { formatCurrency } from "../../utils/helpers";
 import { fetchAddress } from "../user/userSlice";
@@ -52,7 +52,7 @@ function CreateOrder() {
             type="text"
             name="customer"
             defaultValue={username}
-            equired
+            required
           />
         </div>
 
@@ -86,7 +86,7 @@ function CreateOrder() {
             )}
           </div>
 
-          {!position.latitude && !position.logitude && (
+          {!position.latitude && !position.longitude && (
             <span className="absolute right-[3px] top-[3px] z-50 md:right-[5px] md:top-[5px]">
               <Button
                 disabled={isLoadingAddress}
@@ -96,7 +96,7 @@ function CreateOrder() {
                   dispatch(fetchAddress());
                 }}
               >
-                Get Position
+                Get position
               </Button>
             </span>
           )}
@@ -122,11 +122,12 @@ function CreateOrder() {
             type="hidden"
             name="position"
             value={
-              position.latitude && position.longitude
-                ? `${position.latitude}, ${position.longitude}`
+              position.longitude && position.latitude
+                ? `${position.latitude},${position.longitude}`
                 : ""
             }
           />
+
           <Button disabled={isSubmitting || isLoadingAddress} type="primary">
             {isSubmitting
               ? "Placing order...."
@@ -156,9 +157,9 @@ export async function action({ request }) {
   if (Object.keys(errors).length > 0) return errors;
 
   // If everything is okay, create new order and redirect
-
   const newOrder = await createOrder(order);
 
+  // Do NOT overuse
   store.dispatch(clearCart());
 
   return redirect(`/order/${newOrder.id}`);
